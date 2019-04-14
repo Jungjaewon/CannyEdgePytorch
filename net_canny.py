@@ -96,10 +96,13 @@ class Net(nn.Module):
         # COMPUTE THICK EDGES
 
         grad_mag = torch.sqrt(grad_x_r**2 + grad_y_r**2)
-        grad_mag += torch.sqrt(grad_x_g**2 + grad_y_g**2)
-        grad_mag += torch.sqrt(grad_x_b**2 + grad_y_b**2)
+        #grad_mag += torch.sqrt(grad_x_g**2 + grad_y_g**2)
+        grad_mag = grad_mag + torch.sqrt(grad_x_g**2 + grad_y_g**2)
+        #grad_mag += torch.sqrt(grad_x_b**2 + grad_y_b**2)
+        grad_mag = grad_mag + torch.sqrt(grad_x_b**2 + grad_y_b**2)
         grad_orientation = (torch.atan2(grad_y_r+grad_y_g+grad_y_b, grad_x_r+grad_x_g+grad_x_b) * (180.0/3.14159))
-        grad_orientation += 180.0
+        #grad_orientation += 180.0
+        grad_orientation = grad_orientation + 180.0
         grad_orientation =  torch.round( grad_orientation / 45.0 ) * 45.0
 
         # THIN EDGES (NON-MAX SUPPRESSION)
@@ -112,9 +115,15 @@ class Net(nn.Module):
         height = inidices_positive.size()[2]
         width = inidices_positive.size()[3]
         pixel_count = height * width
+        """
         pixel_range = torch.FloatTensor([range(pixel_count)])
         if self.use_cuda:
             pixel_range = torch.cuda.FloatTensor([range(pixel_count)])
+        """
+        if self.use_cuda:
+            pixel_range = torch.cuda.FloatTensor([range(pixel_count)])
+        else:
+            pixel_range = torch.FloatTensor([range(pixel_count)])
 
         indices = (inidices_positive.view(-1).data * pixel_count + pixel_range).squeeze()
         channel_select_filtered_positive = all_filtered.view(-1)[indices.long()].view(1,height,width)
