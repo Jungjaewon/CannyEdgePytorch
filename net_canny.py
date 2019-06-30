@@ -137,12 +137,14 @@ class Net(nn.Module):
         is_max = torch.unsqueeze(is_max, dim=0)
 
         thin_edges = grad_mag.clone()
-        thin_edges[is_max==0] = 0.0
+        thin_edges = thin_edges * (is_max == 1).type(torch.cuda.FloatTensor)
+        #thin_edges[is_max==0] = 0.0
 
         # THRESHOLD
 
-        thresholded = thin_edges.clone()
-        thresholded[thin_edges<self.threshold] = 0.0
+        #thresholded = thin_edges.clone()
+        #thresholded[thin_edges<self.threshold] = 0.0
+        thresholded = thin_edges * (thin_edges > self.threshold).type(torch.cuda.FloatTensor)
 
         early_threshold = grad_mag.clone()
         early_threshold[grad_mag<self.threshold] = 0.0
